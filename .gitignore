@@ -1,0 +1,8 @@
+/.gwt*
+/.settings
+/bin
+/gwt-unitCache
+/src_build
+/tomcat
+/war
+/*.war

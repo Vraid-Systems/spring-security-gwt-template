@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="foo_app" default="gwt-dev" basedir=".">
+	<description>
+        ant buildfile for the foo_app
+    </description>
+
+	<!-- directories and files -->
+	<property name="docs.dir" location="docs" />
+	<property name="gwt.devmode.args" value="-logLevel DEBUG" />
+    <property name="gwt.compile.args" value="" />
+	<property name="gwt.dir" location="gwt-2.5.0.rc2" />
+    <property name="gwt.main.starturl" value="index.html" />
+    <property name="gwt.main.xml" value="com.vraidsys.MainEntryPoint" />
+    <property name="prop.log4j" location="properties/log4j.properties" />
+	<property name="prop.dev.log" location="properties/dev.log.properties" />
+	<property name="prop.pro.log" location="properties/pro.log.properties" />
+	<property name="prop.dest.log" value="logging.properties" />
+	<property name="src.dir" location="src" />
+    <property name="src.build.dir" location="src_build" />
+	<property name="war.dir" location="war" />
+	<property name="war.file" location="foo_app.war" />
+	<property name="web.dir" location="web" />
+	<property name="web.inf.constant" value="WEB-INF" />
+
+	<!-- new forked jvm settings -->
+	<property name="init.mem.size" value="32m" />
+	<property name="max.mem.size" value="512m" />
+	
+	<!-- the build and run class path -->
+	<path id="project.classpath">
+        <fileset dir="devmode-only-libs" includes="*.jar" />
+		<fileset dir="${gwt.dir}" includes="*.jar" />
+		<fileset dir="${web.inf.constant}/lib" includes="*.jar" />
+	</path>
+
+	<!-- javac properties -->
+	<property name="javac.debug" value="true" />
+	<property name="javac.fork" value="true" />
+	<property name="javac.optimize" value="true" />
+	<property name="jdk-version.source" value="1.6" />
+	<property name="jdk-version.target" value="1.6" />
+
+	<!-- javadoc props -->
+	<property name="component.title" value="foo_app" />
+
+	<!-- below here lie actual build targets, probs should not mess with them -->
+	<target name="javadoc" description="generate javadoc from source packages">
+		<!-- keep docs fresh -->
+	    <delete dir="${docs.dir}" />
+	    <mkdir dir="${docs.dir}" />
+
+	    <!-- build the component docs, ${component.*} is predefined -->
+	    <javadoc author="true" bottom="${component.title}" destdir="${docs.dir}"
+	        source="${jdk-version.source}" doctitle="${component.title}"
+	        packagenames="*" access="protected" sourcepath="${src.dir}"
+	        version="true" windowtitle="${component.title}">
+	    </javadoc>
+	</target>
+    
+    <target name="init-loc" description="add assets for local devmode">
+        <copy todir="${war.dir}/${web.inf.constant}/lib">
+            <fileset dir="devmode-only-libs">
+                <exclude name="log4j-1.2.9.jar" />
+            </fileset>
+        </copy>
+        <!-- log4j output to console -->
+        <copy file="${prop.log4j}" todir="${war.dir}/${web.inf.constant}/classes" />
+    </target>
+    <target name="init-devmode" description="load devmode console jars">
+        <copy file="devmode-only-libs/log4j-1.2.9.jar" todir="${war.dir}/${web.inf.constant}/lib" />
+        <copy file="${gwt.dir}/gwt-servlet.jar" todir="${war.dir}/${web.inf.constant}/lib" />
+        <copy file="${gwt.dir}/gwt-servlet-deps.jar" todir="${war.dir}/${web.inf.constant}/lib" />
+    </target>
+    <target name="init-dev" description="intialize with development settings">
+        <copy file="${prop.dev.log}"
+            tofile="${war.dir}/${web.inf.constant}/classes/${prop.dest.log}" />
+    </target>
+    <target name="init-pro" description="initialize with production settings">
+        <copy file="${prop.pro.log}"
+            tofile="${war.dir}/${web.inf.constant}/classes/${prop.dest.log}" />
+    </target>
+    <target name="init-no-auth" description="remove Spring Security auth">
+        <copy overwrite="true" file="devmode-only-config/spring-security.xml"
+            tofile="${war.dir}/${web.inf.constant}/spring-security.xml" />
+    </target>
+    
+    <target name="copystatic" description="copy static WEB-INF data into WAR directory">
+        <copy todir="${war.dir}/${web.inf.constant}">
+            <fileset dir="${web.inf.constant}" />
+        </copy>
+        <copy todir="${war.dir}">
+            <fileset dir="${web.dir}" />
+        </copy>
+    </target>
+    
+    <target name="copy-source" description="copy source to temporary storage">
+        <copy todir="${src.build.dir}">
+            <fileset dir="${src.dir}" />
+        </copy>
+    </target>
+    
+    <target name="insert-build-id" depends="copystatic,copy-source"
+        description="insert a build id for all source/text/properties files">
+        
+        <exec executable="git" failifexecutionfails="false"
+            outputproperty="git.branch">
+            <arg value="branch" />
+        </exec>
+        <exec executable="git" failifexecutionfails="false"
+            outputproperty="git.revision">
+            <arg value="rev-parse" />
+            <arg value="HEAD"/>
+        </exec>
+        
+        <property name="BUILD_ID" value="${user.name} started build ${git.branch} ${git.revision}" />
+
+        <replaceregexp match="Build-Id: (.*)"
+            replace="Build-Id: ${BUILD_ID}" flags="g" byline="true">
+            <fileset dir="${src.build.dir}">
+                <include name="**/*.java"/>
+            </fileset>
+        </replaceregexp>
+        <replaceregexp match="Build-Id: (.*)"
+            replace="Build-Id: ${BUILD_ID} -->" flags="g" byline="true">
+            <fileset dir="${src.build.dir}">
+                <include name="**/*.xml"/>
+            </fileset>
+        </replaceregexp>
+        
+        <replaceregexp match="Build-Id: (.*)"
+            replace="Build-Id: ${BUILD_ID}" flags="g" byline="true">
+            <fileset dir="${war.dir}">
+                <include name="**/*.css"/>
+                <include name="**/*.html"/>
+                <include name="**/*.js"/>
+                <include name="**/*.properties"/>
+            </fileset>
+        </replaceregexp>
+        <replaceregexp match="Build-Id: (.*)"
+            replace="Build-Id: ${BUILD_ID} -->" flags="g" byline="true">
+            <fileset dir="${war.dir}">
+                <include name="**/*.xml"/>
+            </fileset>
+        </replaceregexp>
+    </target>
+
+	<target name="javac" depends="copystatic,copy-source"
+        description="compile all Java source packages into WAR directory">
+		<javac fork="${javac.fork}" srcdir="${src.build.dir}"
+			destdir="${war.dir}/${web.inf.constant}/classes"
+			debug="${javac.debug}"
+			memoryinitialsize="${init.mem.size}" memorymaximumsize="${max.mem.size}"
+			target="${jdk-version.target}" source="${jdk-version.source}"
+			optimize="${javac.optimize}" classpathref="project.classpath">
+			<compilerarg value="-Xlint" />
+		</javac>
+        <!-- include all no .java files - primarily GWT XML config files -->
+		<copy todir="${war.dir}/${web.inf.constant}/classes">
+			<fileset dir="${src.build.dir}" excludes="**/*.java"/>
+		</copy>
+	</target>
+	
+	<target name="devmode" depends="javac" description="start GWT devmode console and local code server">
+		<java failonerror="true" fork="true" classname="com.google.gwt.dev.DevMode">
+			<classpath>
+				<pathelement location="src" />
+                <pathelement location="${war.dir}/${web.inf.constant}/classes" />
+				<path refid="project.classpath" />
+			</classpath>
+			<jvmarg value="-Xms${init.mem.size}" />
+			<jvmarg value="-Xmx${max.mem.size}" />
+            <arg value="-startupUrl"/>
+            <arg value="${gwt.main.starturl}"/>
+			<arg line="-war" />
+	        <arg value="${war.dir}" />
+	        <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+	        <arg line="${gwt.devmode.args}" />
+	        <arg value="${gwt.main.xml}" />
+	    </java>
+	</target>
+    
+    <target name="gwtc" depends="javac" description="compile GWT source to JavaScript (deployable WAR only)">
+        <java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
+            <classpath>
+                <pathelement location="src" />
+                <pathelement location="${war.dir}/${web.inf.constant}/classes" />
+                <path refid="project.classpath" />
+            </classpath>
+            <jvmarg value="-Xms${init.mem.size}" />
+            <jvmarg value="-Xmx${max.mem.size}" />
+            <arg line="-war" />
+            <arg value="${war.dir}" />
+            <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+            <arg line="${gwt.compile.args}" />
+            <arg value="${gwt.main.xml}" />
+        </java>
+    </target>
+
+	<target name="war" depends="gwtc" description="bundle up a deployable WAR file">
+        <war basedir="${war.dir}" destfile="${war.file}" />
+	</target>
+
+	<target name="eclipse-dev" depends="init-loc,javac" description="prep an Eclipse GWT devmode session" />
+    <target name="gwt-dev" depends="init-loc,init-devmode,devmode" description="start a local GWT devmode session" />
+	<target name="war-dev" depends="init-dev,insert-build-id,war" description="create a development deployable WAR" />
+	<target name="war-pro" depends="init-pro,insert-build-id,war" description="create a production deployable WAR" />
+    <target name="war-pro-ROOT" depends="war-pro" description="create a production ROOT.war">
+        <copy file="${war.file}" tofile="ROOT.war"/>
+    </target>
+
+	<target name="clean" description="delete all generated files">
+        <delete dir=".gwt*" />
+		<delete dir="${docs.dir}" />
+        <delete dir="gwt-unitCache" />
+        <delete dir="${src.build.dir}" />
+        <delete dir="tomcat" />
+		<delete dir="${war.dir}" />
+		<delete>
+			<fileset dir="." includes="*.war" />
+		</delete>
+	</target>
+</project>

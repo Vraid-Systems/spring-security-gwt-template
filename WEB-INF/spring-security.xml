@@ -1,0 +1,35 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:security="http://www.springframework.org/schema/security"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+          http://www.springframework.org/schema/security
+          http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+    
+    <!-- Build-Id: EMPTY -->
+
+    <security:http auto-config="true">
+        <security:intercept-url access="ROLE_USER" pattern="/index.html" />
+        <security:intercept-url access="ROLE_USER" pattern="/*.rpc" />
+        
+        <security:logout logout-success-url="/login.html" />
+        <security:form-login login-page="/login.html"
+            authentication-failure-url="/login.html?message=Invalid+username+or+password."
+            default-target-url="/index.html"
+            always-use-default-target="true" />
+        <security:remember-me key="appRememberMeKey" services-ref="rememberMeServices" />
+    </security:http>
+    
+    <bean id="rememberMeServices" class="com.vraidsys.server.data.RememberMeProvider">
+        <property name="alwaysRemember" value="true" />
+        <property name="key" value="appRememberMeKey" /> <!-- must match kRememberMe in RememberMeProvider -->
+        <property name="userDetailsService" ref="appUserDetailsProvider" />
+        <property name="tokenValiditySeconds" value="604800" /> <!-- 1 week in seconds -->
+    </bean>
+    <bean id="appUserDetailsProvider" class="com.vraidsys.server.data.UserDetailsServiceImpl" />
+
+    <security:authentication-manager alias="authenticationManager">
+        <security:authentication-provider ref="appUserAuthProvider" />
+    </security:authentication-manager>
+    <bean id="appUserAuthProvider" class="com.vraidsys.server.data.AuthProvider" />
+</beans>
