@@ -72,6 +72,18 @@ public class RememberMeProvider extends TokenBasedRememberMeServices implements
     }
 
     @Override
+    protected void cancelCookie(final HttpServletRequest request,
+                    final HttpServletResponse response) {
+        response.addCookie(RememberMeProvider.createCookie(
+                        super.getCookieName(), "",
+                        RememberMeProvider.getCookieDomain(request), 0, "/",
+                        request.isSecure()));
+
+        LogFactory.getLog(this.getClass()).debug(
+                        "cancel " + super.getCookieName());
+    }
+
+    @Override
     public UserDetails loadUserByUsername(final String theUserName)
                     throws UsernameNotFoundException {
         return UserDetailsServiceImpl.loadUserByUsernameImpl(theUserName);
