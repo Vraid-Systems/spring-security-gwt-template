@@ -10,6 +10,9 @@ for the front-end.
 
 Requires JRE 1.6+ compatible servlet container for running built code
 
+CI Build via BuildHive:
+[spring-security-gwt-template](https://buildhive.cloudbees.com/job/jzerbe/job/spring-security-gwt-template/)
+
 Development
 -------------
 1. [Download](http://www.eclipse.org/downloads/) and install the Eclipse IDE.
