@@ -13,6 +13,7 @@ Requires JRE 1.6+ compatible servlet container for running built code
 CI Build via BuildHive:
 [spring-security-gwt-template](https://buildhive.cloudbees.com/job/jzerbe/job/spring-security-gwt-template/)
 
+
 Development
 -------------
 1. [Download](http://www.eclipse.org/downloads/) and install the Eclipse IDE.
@@ -52,3 +53,16 @@ The two part process when working in devmode:
 
 1. log in when prompted, which will set the appropriate auth cookies
 2. click the devmode console "launch browser" button again
+
+
+License
+-------------
+- My code: http://opensource.org/licenses/BSD-3-Clause
+- Linked Libraries
+    - log4j 1.2: http://www.apache.org/licenses/LICENSE-2.0
+    - bean-validator: https://glassfish.java.net/public/CDDL+GPL.html
+    - Apache Commons: http://www.apache.org/licenses/ - Apache v2
+    - Jackson 1.9: http://wiki.fasterxml.com/JacksonDownload - Apache v2
+    - Joda-Time: http://joda-time.sourceforge.net/license.html - Apache v2
+    - Spring Framework: http://www.springsource.org/spring-framework - Apache v2
+    - JDBC DRIVER 4.0 FOR SQL SERVER: http://msdn.microsoft.com/en-us/sqlserver/jj589698
