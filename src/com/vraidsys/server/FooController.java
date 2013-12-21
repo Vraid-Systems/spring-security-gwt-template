@@ -39,8 +39,6 @@ public class FooController {
     public @ResponseBody
     List<FooObj> getListOfFooObj(final Principal thePrincipal,
                     final HttpServletResponse response) {
-        response.addHeader("Access-Control-Allow-Origin", "*");
-
         if ((thePrincipal == null) || StringExt.isEmpty(thePrincipal.getName())) {
             return null;
         } else {
