@@ -57,7 +57,7 @@ The two part process when working in devmode:
 
 License
 -------------
-- My code: http://opensource.org/licenses/BSD-3-Clause
+- My code: https://opensource.org/licenses/Apache-2.0
 - Linked Libraries
     - log4j 1.2: http://www.apache.org/licenses/LICENSE-2.0
     - bean-validator: https://glassfish.java.net/public/CDDL+GPL.html
